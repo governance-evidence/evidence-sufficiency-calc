@@ -1,0 +1,21 @@
+# typos configuration
+# https://github.com/crate-ci/typos
+
+[default.extend-words]
+# Domain-specific terms that are not typos
+"ks" = "ks"           # Kolmogorov-Smirnov
+"KS" = "KS"
+"cff" = "cff"         # Citation File Format
+"CBPE" = "CBPE"       # Confidence-Based Performance Estimation
+"PSI" = "PSI"         # Population Stability Index
+"OPA" = "OPA"         # Open Policy Agent
+"Rego" = "Rego"       # OPA policy language
+
+[files]
+extend-exclude = [
+    ".venv/",
+    "*.egg-info/",
+    ".mypy_cache/",
+    ".pytest_cache/",
+    "htmlcov/",
+]

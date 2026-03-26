@@ -1,0 +1,155 @@
+default_language_version:
+  python: python3.11
+
+repos:
+  # ------------------------------------------------------------------ #
+  #  General file hygiene
+  # ------------------------------------------------------------------ #
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+        exclude: ".*\\.ipynb$"
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: check-case-conflict
+      - id: check-ast
+      - id: check-symlinks
+      - id: destroyed-symlinks
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: check-docstring-first
+      - id: name-tests-test
+        args: [--pytest-test-first]
+        files: "^tests/"
+        exclude: "^tests/(fixtures|conftest|__)"
+
+  # ------------------------------------------------------------------ #
+  #  Python — ruff (lint + format)
+  # ------------------------------------------------------------------ #
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.7
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # ------------------------------------------------------------------ #
+  #  Python — mypy (strict type checking)
+  # ------------------------------------------------------------------ #
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.19.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - numpy
+          - scipy
+        args: [--strict, --pretty]
+        pass_filenames: false
+        entry: mypy src/
+
+  # ------------------------------------------------------------------ #
+  #  Python — dead code detection (vulture)
+  # ------------------------------------------------------------------ #
+  - repo: https://github.com/jendrikseipp/vulture
+    rev: v2.14
+    hooks:
+      - id: vulture
+        args:
+          - src/
+          - --min-confidence=90
+          - --exclude=__init__.py,_des_schema.py
+
+  # ------------------------------------------------------------------ #
+  #  Python — tests with 100% coverage (on every commit)
+  # ------------------------------------------------------------------ #
+  - repo: local
+    hooks:
+      - id: pytest-cov
+        name: pytest (100% coverage)
+        entry: ./.venv/bin/python -m pytest --cov=sufficiency --cov-report=term-missing --cov-fail-under=100 -q --no-header --tb=short
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
+
+  # ------------------------------------------------------------------ #
+  #  Markdown lint
+  # ------------------------------------------------------------------ #
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.44.0
+    hooks:
+      - id: markdownlint
+        args:
+          - --config
+          - .markdownlint.yaml
+          - --fix
+        exclude: "^(LICENSE|\\.venv/)"
+
+  # ------------------------------------------------------------------ #
+  #  YAML lint
+  # ------------------------------------------------------------------ #
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.1
+    hooks:
+      - id: yamllint
+        args: [-d, "{extends: relaxed, rules: {line-length: {max: 120}}}"]
+
+  # ------------------------------------------------------------------ #
+  #  TOML sort (canonical ordering in pyproject.toml)
+  # ------------------------------------------------------------------ #
+  - repo: https://github.com/pappasam/toml-sort
+    rev: v0.24.2
+    hooks:
+      - id: toml-sort-fix
+        files: pyproject\.toml
+
+  # ------------------------------------------------------------------ #
+  #  CITATION.cff validation
+  # ------------------------------------------------------------------ #
+  - repo: local
+    hooks:
+      - id: validate-cff
+        name: validate CITATION.cff
+        entry: cffconvert --validate --infile CITATION.cff
+        language: python
+        additional_dependencies:
+          - cffconvert>=2,<3
+        files: CITATION\.cff
+        pass_filenames: false
+
+  # ------------------------------------------------------------------ #
+  #  Typos — fast source-code spell checker
+  # ------------------------------------------------------------------ #
+  - repo: https://github.com/crate-ci/typos
+    rev: typos-dict-v0.12.6
+    hooks:
+      - id: typos
+        exclude: "^(LICENSE|\\.venv/)"
+
+  # ------------------------------------------------------------------ #
+  #  Detect leaked secrets
+  # ------------------------------------------------------------------ #
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: [--baseline, .secrets.baseline]
+        exclude: "^\\.venv/"
+
+  # ------------------------------------------------------------------ #
+  #  pyproject.toml validation
+  # ------------------------------------------------------------------ #
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.24
+    hooks:
+      - id: validate-pyproject

@@ -1,0 +1,76 @@
+{
+  "schema_version": "0.1.0",
+  "decision_id": "cf-deploy-2025-11-18-0842z",
+  "timestamp": "2025-11-18T08:42:00.000Z",
+  "decision_type": "automated",
+  "decision_context": {
+    "available_inputs": [
+      "Database permissions change request",
+      "ML feature configuration pipeline status",
+      "Global proxy deployment metrics"
+    ],
+    "alternatives_considered": [
+      "Apply database permissions change with feature file regeneration validation",
+      "Apply database permissions change without downstream impact assessment",
+      "Stage database change in canary environment first"
+    ],
+    "constraints_operative": [
+      "Database permissions changes classified as routine infrastructure operations",
+      "No cross-boundary impact assessment required for metadata-only changes",
+      "Feature file generation pipeline operates independently of database governance"
+    ],
+    "_recoverability_note": "Partially recoverable: inputs and constraints were documented in operational records, but alternatives_considered is reconstructed post-hoc from the engineering blog rather than captured at decision time. The evaluative context (why cross-boundary impact was not assessed) was not recorded."
+  },
+  "decision_logic": {
+    "rule_version": "proxy-wasm-feature-loader v3.2 with 200-feature hard-coded preallocation limit",
+    "parameters": {
+      "feature_preallocation_limit": 200,
+      "preallocation_type": "hard_coded_rust_panic_on_exceed",
+      "config_distribution": "global_propagation_via_quicksilver"
+    },
+    "thresholds": {
+      "max_feature_file_entries": 200,
+      "error_rate_alert_threshold_percent": null,
+      "canary_deployment_required": false
+    },
+    "_recoverability_note": "Recoverable: the hard-coded 200-feature limit, Rust panic behavior, and global propagation mechanism were fully documented in the post-incident engineering blog and internal root cause analysis."
+  },
+  "decision_boundary": {
+    "contributing_subsystems": [
+      "Database access control layer",
+      "Metadata query pipeline",
+      "ML feature configuration file generator",
+      "Proxy memory preallocation module (Rust)",
+      "Global configuration distribution network (Quicksilver)"
+    ],
+    "external_dependencies": [
+      "Customer-facing HTTP proxy fleet (global)",
+      "DNS resolution pipeline",
+      "Internal monitoring and alerting systems"
+    ],
+    "_recoverability_note": "Recoverable: the cross-subsystem cascade path (database -> metadata pipeline -> feature generator -> proxy fleet) was fully reconstructed post-incident. However, no single monitoring scope covered this interaction path at decision time."
+  },
+  "decision_quality_indicators": {
+    "confidence_score": null,
+    "uncertainty_flags": [
+      "Database permissions change not assessed for downstream data shape impact",
+      "Duplicate column entries in metadata query not detected by validation",
+      "Feature file size increase exceeded hard-coded memory limit without graceful handling",
+      "Intermittent failure pattern (good/bad config alternation across shards) mimicked DDoS signature"
+    ],
+    "ground_truth_available": false,
+    "_recoverability_note": "Structurally unfillable: uncertainty flags listed here were identified post-hoc. At decision time, no mechanism existed to flag that a database permissions change could propagate through the metadata pipeline to crash the proxy fleet. The hard-coded 200-feature limit had no corresponding quality indicator."
+  },
+  "human_override_record": {
+    "override_decision": "Incident initially classified as DDoS attack; root cause identified as infrastructure change only after extended investigation",
+    "independence_assessment": "Operations team relied on monitoring dashboards designed for known failure modes; cross-boundary failure was not a recognized category",
+    "basis_for_deviation": "Failure pattern matched external attack signature more closely than internal configuration error",
+    "_recoverability_note": "Epistemically void: human override records exist but document response to symptoms rather than governance of the causal decision. The operations team could not override the database permissions change because the causal chain was invisible; their 'override' was incident response to a misclassified symptom."
+  },
+  "temporal_metadata": {
+    "decision_timestamp": "2025-11-18T08:42:00.000Z",
+    "evidence_availability_timestamp": "2025-11-18T09:15:00.000Z",
+    "ground_truth_arrival_timestamp": "2025-11-18T11:30:00.000Z",
+    "_recoverability_note": "Recoverable: deployment timestamps and incident timeline were documented in the engineering blog. Ground truth (root cause identification) arrived same day, approximately 3 hours after the initial database change."
+  }
+}

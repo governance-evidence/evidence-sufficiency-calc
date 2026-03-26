@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: "Evidence Sufficiency Calculator"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - given-names: Oleg
+    family-names: Solozobov
+version: 0.1.0
+date-released: '2026-03-26'
+repository-code: 'https://github.com/governance-evidence/evidence-sufficiency-calc'
+license: Apache-2.0
+abstract: >-
+  A Python library that computes evidence sufficiency scores for governance
+  assessments in risk decision systems. Operationalizes four evidence quality
+  dimensions under delayed ground truth conditions, modeling how label latency
+  degrades governance evidence through completeness, freshness, reliability,
+  and representativeness metrics with a decision-readiness gate.
+keywords:
+  - governance evidence
+  - evidence sufficiency
+  - delayed ground truth
+  - blind period
+  - drift detection
+  - model monitoring

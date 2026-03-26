@@ -1,0 +1,180 @@
+{
+  "_bundled_from": "https://github.com/governance-evidence/decision-event-schema v0.1.0 (DOI: 10.5281/zenodo.18923178)",
+  "_bundled_note": "Local copy for offline validation. Canonical source: governance-evidence/decision-event-schema",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/governance-evidence/decision-event-schema/blob/main/schema/decision-event.schema.json",
+  "title": "Decision Event",
+  "description": "The minimal unit of governance evidence that enables post-incident reconstruction of automated decisions. Each optional property resists a specific governance artifact degradation type.",
+  "type": "object",
+  "required": ["decision_id", "timestamp", "decision_type"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Semantic version of the Decision Event Schema this event conforms to. Enables forward compatibility as the schema evolves.",
+      "examples": ["0.1.0"]
+    },
+    "decision_id": {
+      "type": "string",
+      "description": "Unique identifier for this decision event. May be a UUID or a human-readable slug."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when the decision was executed."
+    },
+    "decision_type": {
+      "type": "string",
+      "enum": ["human", "automated", "hybrid"],
+      "description": "Whether the decision was made by a human, an automated system, or a combination."
+    },
+    "decision_context": {
+      "type": "object",
+      "description": "Available inputs, alternatives considered, and constraints operative at the time of decision. Resists Content Staleness degradation.",
+      "properties": {
+        "available_inputs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Data sources and signals available to the decision-maker at the time of decision."
+        },
+        "alternatives_considered": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Decision alternatives that were evaluated before the final choice."
+        },
+        "constraints_operative": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Regulatory, technical, or organizational constraints that bounded the decision space."
+        },
+        "_recoverability_note": {
+          "type": "string",
+          "description": "Post-hoc annotation classifying the recoverability status of this property (e.g., recoverable, partially recoverable, structurally unfillable, opaque)."
+        }
+      },
+      "additionalProperties": true
+    },
+    "decision_logic": {
+      "type": "object",
+      "description": "Rule or model version, parameters, and thresholds at the time of decision. Resists Schema Drift degradation.",
+      "properties": {
+        "rule_version": {
+          "type": "string",
+          "description": "Version identifier of the rule set or model used."
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Key parameters that governed the decision.",
+          "additionalProperties": true
+        },
+        "thresholds": {
+          "type": "object",
+          "description": "Threshold values that triggered or influenced the decision.",
+          "additionalProperties": true
+        },
+        "_recoverability_note": {
+          "type": "string",
+          "description": "Post-hoc annotation classifying the recoverability status of this property (e.g., recoverable, partially recoverable, structurally unfillable, opaque)."
+        }
+      },
+      "additionalProperties": true
+    },
+    "decision_boundary": {
+      "type": "object",
+      "description": "Contributing subsystems and external dependencies involved in the decision. Resists Coverage Erosion degradation.",
+      "properties": {
+        "contributing_subsystems": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Internal subsystems that contributed to or were affected by the decision."
+        },
+        "external_dependencies": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "External systems, data feeds, or services the decision depended on."
+        },
+        "_recoverability_note": {
+          "type": "string",
+          "description": "Post-hoc annotation classifying the recoverability status of this property (e.g., recoverable, partially recoverable, structurally unfillable, opaque)."
+        }
+      },
+      "additionalProperties": true
+    },
+    "decision_quality_indicators": {
+      "type": "object",
+      "description": "Confidence scores, uncertainty flags, and ground truth availability. Resists Metric Erosion degradation.",
+      "properties": {
+        "confidence_score": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "System-reported confidence in the decision (0.0 to 1.0). Null when no score was computed."
+        },
+        "uncertainty_flags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Conditions flagged as uncertain at the time of decision."
+        },
+        "ground_truth_available": {
+          "type": "boolean",
+          "description": "Whether ground truth data was available at the time of decision."
+        },
+        "_recoverability_note": {
+          "type": "string",
+          "description": "Post-hoc annotation classifying the recoverability status of this property (e.g., recoverable, partially recoverable, structurally unfillable, opaque)."
+        }
+      },
+      "additionalProperties": true
+    },
+    "human_override_record": {
+      "type": "object",
+      "description": "Override decision, independence assessment, and basis for deviation. Resists Override Accumulation degradation.",
+      "properties": {
+        "override_decision": {
+          "type": ["string", "null"],
+          "description": "What the human override changed relative to the automated recommendation. Null when override was structurally impossible or absent by design."
+        },
+        "independence_assessment": {
+          "type": ["string", "null"],
+          "description": "Whether the override was made independently or under organizational pressure. Null when no override occurred."
+        },
+        "basis_for_deviation": {
+          "type": ["string", "null"],
+          "description": "The stated rationale for deviating from the automated recommendation. Null when no override occurred."
+        },
+        "_recoverability_note": {
+          "type": "string",
+          "description": "Post-hoc annotation classifying the recoverability status of this property (e.g., recoverable, partially recoverable, structurally unfillable, opaque)."
+        }
+      },
+      "additionalProperties": true
+    },
+    "temporal_metadata": {
+      "type": "object",
+      "description": "Timestamps tracking the gap between decision, evidence availability, and ground truth arrival. Resists Content Staleness degradation (via temporal evidence decay).",
+      "properties": {
+        "decision_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the decision was executed."
+        },
+        "evidence_availability_timestamp": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "When evidence about this decision became available for review. Null when evidence availability cannot be established."
+        },
+        "ground_truth_arrival_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When ground truth about the decision outcome became known."
+        },
+        "_recoverability_note": {
+          "type": "string",
+          "description": "Post-hoc annotation classifying the recoverability status of this property (e.g., recoverable, partially recoverable, structurally unfillable, opaque)."
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

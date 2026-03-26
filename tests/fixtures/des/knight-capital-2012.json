@@ -1,0 +1,66 @@
+{
+  "schema_version": "0.1.0",
+  "decision_id": "knight-capital-2012-08-01-smars",
+  "timestamp": "2012-08-01T13:30:00.000Z",
+  "decision_type": "automated",
+  "decision_context": {
+    "available_inputs": [
+      "Market data feeds for 154 NYSE-listed stocks",
+      "Order routing rules (production + inadvertently reactivated legacy SMARS code)",
+      "Position and P&L data (available but not correlated with decision logic at execution speed)"
+    ],
+    "alternatives_considered": [],
+    "constraints_operative": [
+      "Server deployment procedure did not verify which code versions were active per server",
+      "Legacy SMARS routing code inadvertently reactivated during deployment to 8 servers",
+      "No cross-system interaction monitoring between legacy and production code paths"
+    ],
+    "_recoverability_note": "Structurally unfillable: system did not log what alternatives the algorithm evaluated or what constraints were operative during legacy code reactivation. alternatives_considered left empty because no mechanism existed to record them."
+  },
+  "decision_logic": {
+    "rule_version": "SMARS v4.0 routing logic inadvertently repurposed as order execution logic on 8 of 8 servers",
+    "parameters": {
+      "routing_mode": "Legacy Power Peg routing code repurposed as aggressive execution logic",
+      "position_limit_usd": null,
+      "rate_limit_orders_per_second": null
+    },
+    "thresholds": {
+      "max_position_exposure": null,
+      "anomaly_detection": null,
+      "kill_switch_trigger": null
+    },
+    "_recoverability_note": "Partially recoverable post-hoc from code forensics and SEC investigation. Trade execution rules were recorded per SEC requirements, but the distinction between legacy and production code paths was not captured in logs."
+  },
+  "decision_boundary": {
+    "contributing_subsystems": [
+      "Active production trading system",
+      "Legacy SMARS order routing module (inadvertently reactivated on 8 servers)",
+      "Order management system",
+      "Market execution gateway"
+    ],
+    "external_dependencies": [
+      "NYSE and NASDAQ order matching engines",
+      "Market data feeds (real-time quotes and execution reports)",
+      "SEC-mandated trade reporting systems (OATS)"
+    ],
+    "_recoverability_note": "Structurally unfillable: cross-boundary interaction between reactivated legacy SMARS code and active production systems was invisible to logging infrastructure. Each subsystem was audited independently; no end-to-end decision chain visibility existed."
+  },
+  "decision_quality_indicators": {
+    "confidence_score": null,
+    "uncertainty_flags": [],
+    "ground_truth_available": false,
+    "_recoverability_note": "Structurally unfillable: no anomaly detection, no confidence scoring, no uncertainty flags existed. The system executed 4+ million unintended transactions across 154 stocks without any quality indicator flagging the pattern as aberrant."
+  },
+  "human_override_record": {
+    "override_decision": null,
+    "independence_assessment": null,
+    "basis_for_deviation": null,
+    "_recoverability_note": "Structurally unfillable (architectural): not because operators chose not to intervene, but because no mechanism for human intervention was architecturally available at the velocity at which decisions were executing. Four simultaneous failure dimensions prevented override: speed (millisecond execution), interaction (multiple systems without end-to-end visibility), temporal (legacy code reactivation), and organizational (no single operator could monitor the full decision chain)."
+  },
+  "temporal_metadata": {
+    "decision_timestamp": "2012-08-01T13:30:00.000Z",
+    "evidence_availability_timestamp": "2012-08-01T15:00:00.000Z",
+    "ground_truth_arrival_timestamp": "2012-10-16T00:00:00.000Z",
+    "_recoverability_note": "Recoverable: SEC-mandated timestamps accompanied every trade execution. Evidence became assemblable into a reconstructable narrative hours after trading was halted. Formal ground truth (SEC enforcement action and $12M fine) arrived October 16, 2012."
+  }
+}

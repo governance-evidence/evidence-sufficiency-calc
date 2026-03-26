@@ -1,6 +1,7 @@
 # Evidence Sufficiency Calculator
 
 [![CI](https://github.com/governance-evidence/evidence-sufficiency-calc/actions/workflows/ci.yml/badge.svg)](https://github.com/governance-evidence/evidence-sufficiency-calc/actions/workflows/ci.yml)
+ [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19233931.svg)](https://doi.org/10.5281/zenodo.19233931)
 ![Status: Alpha](https://img.shields.io/badge/status-alpha-orange)
 ![Python: 3.11-3.14](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
@@ -180,8 +181,13 @@ for result in sim.simulate([30, 60, 90, 180]):
 Citation metadata for this project is maintained in `CITATION.cff` at the
 repository root.
 
-Until a Zenodo DOI is minted, use the repository URL and release tag as the
-canonical software reference.
+Current Zenodo release DOI for `v0.1.0`:
+
+- `10.5281/zenodo.19233931`
+
+Recommended software citation:
+
+> Solozobov, O. (2026). *Evidence Sufficiency Calculator* (v0.1.0). Zenodo. <https://doi.org/10.5281/zenodo.19233931>
 
 ## Related Projects
 

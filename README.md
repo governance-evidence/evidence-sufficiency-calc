@@ -18,22 +18,22 @@ Schema records.
 ### Install
 
 ```bash
-pip install -e .
+pip install .
 ```
 
 Installation modes:
 
 | Mode | Command | Use when |
 | --- | --- | --- |
-| Base | `pip install -e .` | You only need the core sufficiency scoring library. |
-| DES adapter | `pip install -e '.[des]'` | You need Decision Event Schema validation and extraction helpers. |
+| Base | `pip install .` | You only need the core sufficiency scoring library. |
+| DES adapter | `pip install '.[des]'` | You need Decision Event Schema validation and extraction helpers. |
 | Development | `pip install -e '.[dev]'` | You are contributing and need lint, typecheck, test, and pre-commit tooling. |
 
 If you need the Decision Event Schema adapter layer, install the optional `des`
 extra:
 
 ```bash
-pip install -e '.[des]'
+pip install '.[des]'
 ```
 
 The JSON Schema used by the adapter ships with this package; no sibling schema

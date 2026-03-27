@@ -59,19 +59,94 @@ FEATURE_COLS = [
     "V1",
     "V2",
     "V3",
+    "V4",
+    "V5",
     "V12",
     "V13",
     "V14",
+    "V15",
+    "V29",
+    "V30",
+    "V33",
+    "V34",
+    "V44",
+    "V45",
+    "V46",
+    "V47",
+    "V48",
     "V54",
+    "V55",
+    "V56",
+    "V57",
+    "V69",
+    "V70",
+    "V71",
+    "V72",
+    "V73",
+    "V74",
     "V75",
+    "V76",
+    "V77",
     "V78",
+    "V83",
+    "V87",
+    "V126",
+    "V127",
+    "V128",
+    "V129",
+    "V130",
+    "V131",
+    "V279",
+    "V280",
+    "V282",
+    "V283",
+    "V306",
+    "V307",
+    "V308",
+    "V309",
+    "V310",
+    "V312",
+    "V313",
+    "V314",
+    "V315",
 ]
+
+# IEEE-CIS specific: tau_r calibrated for 3.5% fraud imbalance.
+# F1 ~ 0.13 is the realistic baseline for logistic regression on this data;
+# tau_r = 0.15 places the gate threshold just above baseline so that
+# degradation produces visible S(t) dynamics.
+IEEE_CIS_TAU_R = 0.15
 
 SHIFT_FEATURES = ["TransactionAmt", "V1", "V3"]
 COVARIATE_SIGMAS = [0.3, 0.6, 1.0, 1.5, 2.0]
-CONCEPT_FLIP_RATES = [0.05, 0.10, 0.20, 0.35, 0.50]
+CONCEPT_FLIP_RATES = [0.10, 0.25, 0.50, 0.75, 0.95]  # fraud labels flipped to legit
 MIXED_SIGMAS = [0.2, 0.4, 0.7, 1.0, 1.5]
-MIXED_FLIPS = [0.03, 0.07, 0.12, 0.20, 0.30]
+MIXED_FLIPS = [0.05, 0.15, 0.30, 0.50, 0.70]  # fraud labels flipped to legit
+
+
+# ---------------------------------------------------------------------------
+# Config factory
+# ---------------------------------------------------------------------------
+
+
+def _ieee_cis_config():
+    """Fraud detection config with tau_r calibrated for IEEE-CIS class imbalance."""
+    from sufficiency._dimensions import COMPLETENESS, FRESHNESS, RELIABILITY, REPRESENTATIVENESS
+    from sufficiency.types import GovernanceConfig, SufficiencyThresholds
+
+    return GovernanceConfig(
+        weights={
+            COMPLETENESS: 0.20,
+            FRESHNESS: 0.30,
+            RELIABILITY: 0.30,
+            REPRESENTATIVENESS: 0.20,
+        },
+        tau_c=0.6,
+        tau_r=IEEE_CIS_TAU_R,
+        lambda_freshness=0.02,
+        ks_cap=0.30,
+        thresholds=SufficiencyThresholds(sufficient=0.8, degraded=0.5),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -124,23 +199,27 @@ def _inject_covariate(df: pd.DataFrame, idx: int, rng: np.random.Generator) -> p
 
 
 def _inject_concept(df: pd.DataFrame, idx: int, rng: np.random.Generator) -> pd.DataFrame:
+    """One-directional flip: fraud→legit only, so R(t) decreases."""
     out = df.copy()
     flip_rate = CONCEPT_FLIP_RATES[min(idx, len(CONCEPT_FLIP_RATES) - 1)]
-    n_flip = int(len(out) * flip_rate)
-    flip_idx = rng.choice(out.index, size=n_flip, replace=False)
-    out.loc[flip_idx, "isFraud"] = 1 - out.loc[flip_idx, "isFraud"]
+    fraud_idx = out[out["isFraud"] == 1].index
+    n_flip = min(int(len(fraud_idx) * flip_rate), len(fraud_idx))
+    flip_idx = rng.choice(fraud_idx, size=n_flip, replace=False)
+    out.loc[flip_idx, "isFraud"] = 0
     return out
 
 
 def _inject_mixed(df: pd.DataFrame, idx: int, rng: np.random.Generator) -> pd.DataFrame:
+    """Covariate shift + one-directional fraud→legit label flip."""
     sigma = MIXED_SIGMAS[min(idx, len(MIXED_SIGMAS) - 1)]
     flip_rate = MIXED_FLIPS[min(idx, len(MIXED_FLIPS) - 1)]
     out = df.copy()
     for col in SHIFT_FEATURES:
         out[col] = out[col] + rng.normal(0, sigma * out[col].std(), len(out))
-    n_flip = int(len(out) * flip_rate)
-    flip_idx = rng.choice(out.index, size=n_flip, replace=False)
-    out.loc[flip_idx, "isFraud"] = 1 - out.loc[flip_idx, "isFraud"]
+    fraud_idx = out[out["isFraud"] == 1].index
+    n_flip = min(int(len(fraud_idx) * flip_rate), len(fraud_idx))
+    flip_idx = rng.choice(fraud_idx, size=n_flip, replace=False)
+    out.loc[flip_idx, "isFraud"] = 0
     return out
 
 
@@ -159,13 +238,13 @@ def _compute_window_sufficiency(
     """Compute S(t) for one window using sufficiency dimension scorers."""
     from sklearn.metrics import f1_score as sk_f1
 
-    from sufficiency import compute_sufficiency, fraud_detection_config
+    from sufficiency import compute_sufficiency
     from sufficiency.dimensions.completeness import compute_completeness
     from sufficiency.dimensions.freshness import compute_freshness
     from sufficiency.dimensions.reliability import compute_reliability
     from sufficiency.dimensions.representativeness import compute_representativeness
 
-    config = fraud_detection_config()
+    config = _ieee_cis_config()
 
     # Completeness: fraction of transactions with known isFraud
     # In blind period simulation, assume labels arrive for a decreasing fraction
@@ -266,14 +345,21 @@ def _run_scenario(
 # ---------------------------------------------------------------------------
 
 
-def _run_blind_period_simulation() -> None:
-    """Run blind period simulator with three drift types."""
-    from sufficiency import BlindPeriodSimulator, DriftSpec, DriftType, fraud_detection_config
+def _run_blind_period_simulation(
+    empirical_c: float,
+    empirical_r: float,
+    empirical_p: float,
+) -> None:
+    """Run blind period simulator calibrated from empirical reference window."""
+    from sufficiency import BlindPeriodSimulator, DriftSpec, DriftType
 
-    config = fraud_detection_config()
+    config = _ieee_cis_config()
 
     print(f"\n{'=' * _WIDTH}")
-    print("  Blind Period Simulation (BlindPeriodSimulator)")
+    print(
+        f"  Blind Period Simulation (calibrated: C={empirical_c:.3f}, "
+        f"R={empirical_r:.3f}, P={empirical_p:.3f})"
+    )
     print(f"{'=' * _WIDTH}")
 
     for drift_name, specs in [
@@ -289,9 +375,9 @@ def _run_blind_period_simulation() -> None:
         ),
     ]:
         sim = BlindPeriodSimulator(
-            initial_completeness=0.85,
-            initial_reliability=0.88,
-            initial_representativeness=0.95,
+            initial_completeness=empirical_c,
+            initial_reliability=empirical_r,
+            initial_representativeness=empirical_p,
             config=config,
             drift_specs=specs,
         )
@@ -312,12 +398,10 @@ def main() -> None:
     try:
         import pandas as pd
         from sklearn.linear_model import LogisticRegression
+        from sklearn.preprocessing import StandardScaler
     except ImportError:
         print("Missing dependencies. Install with: pip install -e '.[demo]'")
         sys.exit(1)
-
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.preprocessing import StandardScaler
 
     windows = _load_and_split()
 
@@ -326,9 +410,26 @@ def main() -> None:
     scaler = StandardScaler()
     x_ref = scaler.fit_transform(ref_df[FEATURE_COLS].values)
     y_ref = ref_df["isFraud"].values
-    model = LogisticRegression(max_iter=1000, random_state=SEED, solver="lbfgs")
+    model = LogisticRegression(
+        max_iter=1000, random_state=SEED, solver="lbfgs", class_weight="balanced"
+    )
     model.fit(x_ref, y_ref)
-    print(f"  Reference: {len(ref_df):,} txns, fraud_rate={y_ref.mean():.4f}")
+
+    # Compute empirical reference dimensions for simulator calibration
+    from sklearn.metrics import f1_score as sk_f1
+
+    from sufficiency.dimensions.completeness import compute_completeness
+    from sufficiency.dimensions.reliability import compute_reliability
+    from sufficiency.dimensions.representativeness import compute_representativeness
+
+    ref_probs = model.predict_proba(x_ref)[:, 1]
+    ref_preds = (ref_probs > 0.5).astype(int)
+    ref_f1 = float(sk_f1(y_ref, ref_preds))
+    ref_c = compute_completeness(len(y_ref), len(ref_df)).value
+    ref_r = compute_reliability(y_ref, ref_preds, rng_seed=SEED).value
+    ref_p = compute_representativeness(ref_probs, ref_probs).value  # self-comparison = 1.0
+    print(f"  Reference: {len(ref_df):,} txns, fraud_rate={y_ref.mean():.4f}, F1={ref_f1:.3f}")
+    print(f"  Empirical dimensions: C={ref_c:.3f}, R={ref_r:.3f}, P={ref_p:.3f}")
 
     # Scenario 1-4: Real data + injection
     all_rows: list[dict] = []
@@ -341,8 +442,8 @@ def main() -> None:
         rows = _run_scenario(title, windows, model, scaler, inject_fn=fn)
         all_rows.extend(rows)
 
-    # Blind period simulation (analytic, no data needed)
-    _run_blind_period_simulation()
+    # Blind period simulation calibrated from empirical reference
+    _run_blind_period_simulation(ref_c, ref_r, ref_p)
 
     # Summary
     print(f"\n{'=' * _WIDTH}")

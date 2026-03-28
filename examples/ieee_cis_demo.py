@@ -4,7 +4,7 @@ Computes S(t) trajectories on real IEEE-CIS data across temporal windows
 with three drift injection scenarios. Demonstrates blind period simulation,
 threshold crossings, and governance response classification.
 
-This demo complements the the Governance Drift Toolkit monitoring demo. The drift toolkit detects drift;
+This demo complements the Governance Drift Toolkit monitoring demo. The drift toolkit detects drift;
 the sufficiency calculator quantifies its governance impact via sufficiency scoring.
 
 Prerequisites

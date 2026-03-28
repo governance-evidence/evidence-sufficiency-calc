@@ -12,6 +12,8 @@ than the stable root API surface.
 
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version
+
 from sufficiency.blind_period import BlindPeriodSimulator
 from sufficiency.composite import compute_sufficiency
 from sufficiency.config import credit_scoring_config, default_config, fraud_detection_config
@@ -27,7 +29,11 @@ from sufficiency.types import (
     SufficiencyThresholds,
 )
 
-__version__ = "0.1.0"
+try:
+    __version__ = version("evidence-sufficiency-calc")
+except PackageNotFoundError:
+    __version__ = "0+unknown"
+
 ROOT_API_STABILITY = "stable"
 
 __all__ = [

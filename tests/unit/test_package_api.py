@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import importlib
+import importlib.metadata
+from importlib.metadata import version
+
 import sufficiency
 from sufficiency import sequential
 from sufficiency.adapters import des
@@ -10,7 +14,19 @@ from sufficiency.experimental import monitoring
 
 class TestPackageApi:
     def test_version_exposed(self) -> None:
-        assert sufficiency.__version__ == "0.1.0"
+        assert sufficiency.__version__ == version("evidence-sufficiency-calc")
+
+    def test_version_falls_back_when_package_metadata_is_unavailable(self, monkeypatch) -> None:
+        def fake_version(_: str) -> str:
+            raise importlib.metadata.PackageNotFoundError
+
+        monkeypatch.setattr(importlib.metadata, "version", fake_version)
+
+        reloaded = importlib.reload(sufficiency)
+
+        assert reloaded.__version__ == "0+unknown"
+
+        importlib.reload(sufficiency)
 
     def test_core_symbols_reexported(self) -> None:
         expected = {

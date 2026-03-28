@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=69,<80", "wheel"]
+requires = ["setuptools>=69,<80", "setuptools-scm>=8,<9", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -194,11 +194,12 @@ max-branches = 12
 max-statements = 50
 max-args = 8
 
-[tool.setuptools.dynamic]
-version = {attr = "sufficiency.__version__"}
-
 [tool.setuptools.package-data]
 "sufficiency.adapters" = ["schemas/*.json"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "no-local-version"

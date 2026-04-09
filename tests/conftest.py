@@ -47,9 +47,32 @@ def all_des_events() -> list[dict[str, Any]]:
 def minimal_valid_event() -> dict[str, Any]:
     """Minimal valid DES event with only required fields."""
     return {
+        "schema_version": "0.3.0",
         "decision_id": "test-minimal",
         "timestamp": "2026-01-01T00:00:00Z",
         "decision_type": "automated",
+        "decision_context": {
+            "decision_id": "test-minimal",
+            "decision_type": "fraud_detection",
+        },
+        "decision_logic": {
+            "logic_type": "rule_based",
+            "output": "approve",
+        },
+        "human_override_record": {
+            "override_occurred": False,
+        },
+        "temporal_metadata": {
+            "event_timestamp": "2026-01-01T00:00:00Z",
+            "decision_timestamp": "2026-01-01T00:00:00Z",
+            "sequence_number": 1,
+            "hash_chain": {
+                "previous_hash": None,
+                "current_hash": "test-minimal-hash",
+                "algorithm": "SHA-256",
+            },
+            "evidence_tier": "lightweight",
+        },
     }
 
 

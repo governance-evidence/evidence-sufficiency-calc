@@ -29,6 +29,46 @@ def _raise_import_error(_name: str) -> ModuleType:
     raise ImportError("mocked")
 
 
+def _make_valid_event(
+    event_id: str = "test-1",
+    *,
+    decision_time: str = "2026-01-01T00:00:00Z",
+    logic_type: str = "rule_based",
+    output: object = "approve",
+) -> dict[str, object]:
+    return {
+        "schema_version": "0.3.0",
+        "decision_id": event_id,
+        "timestamp": decision_time,
+        "decision_type": "automated",
+        "decision_context": {
+            "decision_id": event_id,
+            "decision_type": "fraud_detection",
+        },
+        "decision_logic": {
+            "logic_type": logic_type,
+            "output": output,
+        },
+        "decision_quality_indicators": {
+            "ground_truth_available": False,
+        },
+        "human_override_record": {
+            "override_occurred": False,
+        },
+        "temporal_metadata": {
+            "event_timestamp": decision_time,
+            "decision_timestamp": decision_time,
+            "sequence_number": 1,
+            "hash_chain": {
+                "previous_hash": None,
+                "current_hash": f"{event_id}-hash",
+                "algorithm": "SHA-256",
+            },
+            "evidence_tier": "lightweight",
+        },
+    }
+
+
 class TestValidateEvents:
     def test_packaged_schema_resource_exists(self) -> None:
         assert des._get_schema_resource().is_file()
@@ -44,16 +84,12 @@ class TestValidateEvents:
         assert errors == [], f"Validation errors: {errors}"
 
     def test_invalid_event_missing_required(self) -> None:
-        event = {"decision_type": "automated"}
+        event = {"schema_version": "0.3.0"}
         errors = validate_events([event])
         assert len(errors) >= 2
 
     def test_invalid_decision_type(self) -> None:
-        event = {
-            "decision_id": "test-1",
-            "timestamp": "2026-01-01T00:00:00Z",
-            "decision_type": "invalid_type",
-        }
+        event = _make_valid_event(logic_type="invalid_type")
         errors = validate_events([event])
         assert len(errors) == 1
         assert "invalid_type" in errors[0]
@@ -121,11 +157,7 @@ class TestValidateEdgeCases:
         monkeypatch.setattr(des, "_get_schema_resource", lambda: Path("/nonexistent/schema.json"))
         des._load_schema_cached.cache_clear()
         des._get_validator_cached.cache_clear()
-        event = {
-            "decision_id": "x",
-            "timestamp": "2026-01-01T00:00:00Z",
-            "decision_type": "human",
-        }
+        event = _make_valid_event("x")
 
         with pytest.raises(CompatError, match="schema not found"):
             validate_events([event])

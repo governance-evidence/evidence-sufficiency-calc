@@ -1,37 +1,53 @@
 {
-  "_bundled_from": "https://github.com/governance-evidence/decision-event-schema v0.1.0 (DOI: 10.5281/zenodo.18923178)",
-  "_bundled_note": "Local copy for offline validation. Canonical source: governance-evidence/decision-event-schema",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/governance-evidence/decision-event-schema/blob/main/schema/decision-event.schema.json",
   "title": "Decision Event",
-  "description": "The minimal unit of governance evidence that enables post-incident reconstruction of automated decisions. Each optional property resists a specific governance artifact degradation type.",
+  "description": "The minimal unit of governance evidence that enables post-incident reconstruction of automated decisions. Each property group resists a specific governance artifact degradation type. Version 0.3.0 requires explicit schema_version declaration on every event and preserves the v0.2 feature set: two-path human judgment design (primary human decisions vs algorithmic overrides), logic type classification, mandatory override tracking, tiered evidence, cryptographic integrity fields with generation sequence specification, and boundary contract extensions (data_contract, failure_mode).",
   "type": "object",
-  "required": ["decision_id", "timestamp", "decision_type"],
+  "required": ["schema_version", "decision_context", "decision_logic", "human_override_record", "temporal_metadata"],
   "properties": {
     "schema_version": {
       "type": "string",
       "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
-      "description": "Semantic version of the Decision Event Schema this event conforms to. Enables forward compatibility as the schema evolves.",
-      "examples": ["0.1.0"]
-    },
-    "decision_id": {
-      "type": "string",
-      "description": "Unique identifier for this decision event. May be a UUID or a human-readable slug."
-    },
-    "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "description": "ISO 8601 timestamp of when the decision was executed."
-    },
-    "decision_type": {
-      "type": "string",
-      "enum": ["human", "automated", "hybrid"],
-      "description": "Whether the decision was made by a human, an automated system, or a combination."
+      "description": "Semantic version of the Decision Event Schema this event conforms to.",
+      "examples": ["0.3.0"]
     },
     "decision_context": {
       "type": "object",
-      "description": "Available inputs, alternatives considered, and constraints operative at the time of decision. Resists Content Staleness degradation.",
+      "description": "Property 1: Semantic completeness. Records inputs, alternatives, and constraints available at decision time. Resists Content Staleness degradation.",
+      "required": ["decision_id", "decision_type"],
       "properties": {
+        "decision_id": {
+          "type": "string",
+          "description": "Unique identifier for this decision event. May be a UUID or a human-readable slug."
+        },
+        "decision_type": {
+          "type": "string",
+          "description": "Domain-level category of decision (e.g., fraud_detection, policy_enforcement, autonomous_operation). Implementations define domain-appropriate values."
+        },
+        "trigger": {
+          "type": "string",
+          "description": "What initiated this decision (event, schedule, human request, upstream decision)."
+        },
+        "inputs": {
+          "type": "array",
+          "description": "Structured input records available at decision time.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "input_id": { "type": "string" },
+              "input_type": { "type": "string" },
+              "input_source": { "type": "string" },
+              "input_version": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "environment": {
+          "type": "object",
+          "description": "Runtime context: system_id, system_version, configuration_hash, deployment_id.",
+          "additionalProperties": true
+        },
         "available_inputs": {
           "type": "array",
           "items": { "type": "string" },
@@ -49,15 +65,68 @@
         },
         "_recoverability_note": {
           "type": "string",
-          "description": "Post-hoc annotation classifying the recoverability status of this property (e.g., recoverable, partially recoverable, structurally unfillable, opaque)."
+          "description": "Post-hoc annotation classifying the recoverability status of this property."
         }
       },
       "additionalProperties": true
     },
     "decision_logic": {
       "type": "object",
-      "description": "Rule or model version, parameters, and thresholds at the time of decision. Resists Schema Drift degradation.",
+      "description": "Property 2: Causal reconstructability. Records the logic applied to reach the decision. Resists Schema Drift degradation.",
+      "required": ["logic_type", "output"],
       "properties": {
+        "logic_type": {
+          "description": "How the decision was made. Core values form a closed set; domain-specific extensions use namespace-prefixed values (e.g., fintech:credit_scoring).",
+          "oneOf": [
+            { "enum": ["rule_based", "ml_inference", "hybrid", "policy_evaluation", "human_decision"] },
+            { "type": "string", "pattern": "^[a-z][a-z0-9_]*:[a-z][a-z0-9_]*$" }
+          ]
+        },
+        "output": {
+          "description": "Final decision output. When an override occurs, this reflects the overridden outcome (matches human_override_record.overridden_output)."
+        },
+        "rule_path": {
+          "type": "array",
+          "description": "For rule_based: ordered list of rules evaluated.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "rule_id": { "type": "string" },
+              "rule_version": { "type": "string" },
+              "rule_result": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "model_inference": {
+          "type": "object",
+          "description": "For ml_inference: model identification and inference metadata.",
+          "properties": {
+            "model_id": { "type": "string" },
+            "model_version": { "type": "string" },
+            "feature_vector_hash": { "type": "string" },
+            "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+          },
+          "additionalProperties": true
+        },
+        "policy_evaluation": {
+          "type": "object",
+          "description": "For policy_evaluation: policy engine evaluation trace.",
+          "properties": {
+            "policy_id": { "type": "string" },
+            "policy_version": { "type": "string" },
+            "policy_engine": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "combination_method": {
+          "type": "string",
+          "description": "For hybrid: how multiple logic sources were combined (voting, cascading, overriding, weighted)."
+        },
+        "output_alternatives": {
+          "type": "array",
+          "description": "Alternative outputs considered (where available)."
+        },
         "rule_version": {
           "type": "string",
           "description": "Version identifier of the rule set or model used."
@@ -74,15 +143,64 @@
         },
         "_recoverability_note": {
           "type": "string",
-          "description": "Post-hoc annotation classifying the recoverability status of this property (e.g., recoverable, partially recoverable, structurally unfillable, opaque)."
+          "description": "Post-hoc annotation classifying the recoverability status of this property."
         }
       },
       "additionalProperties": true
     },
     "decision_boundary": {
       "type": "object",
-      "description": "Contributing subsystems and external dependencies involved in the decision. Resists Coverage Erosion degradation.",
+      "description": "Property 3: Cross-system coupling. Records contributing subsystems and dependencies. Resists Coverage Erosion degradation.",
       "properties": {
+        "upstream_decisions": {
+          "type": "array",
+          "description": "Decisions that fed into this one, each with its own boundary contract.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "decision_id": { "type": "string" },
+              "system_id": { "type": "string" },
+              "coupling_type": { "type": "string" },
+              "boundary_contract": {
+                "type": "object",
+                "description": "Per-interface coupling contract.",
+                "properties": {
+                  "protocol": { "type": "string" },
+                  "schema_version": { "type": "string" },
+                  "sla": { "type": "string" },
+                  "data_contract": { "type": "string", "description": "Schema or format contract for data exchanged across this boundary." },
+                  "failure_mode": { "type": "string", "description": "Expected behavior when this boundary fails (e.g., fail-open, fail-closed, degrade)." }
+                },
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "downstream_consumers": {
+          "type": "array",
+          "description": "Systems expected to consume this decision, each with its own boundary contract.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "system_id": { "type": "string" },
+              "contract_version": { "type": "string" },
+              "boundary_contract": {
+                "type": "object",
+                "description": "Per-interface coupling contract.",
+                "properties": {
+                  "protocol": { "type": "string" },
+                  "schema_version": { "type": "string" },
+                  "sla": { "type": "string" },
+                  "data_contract": { "type": "string", "description": "Schema or format contract for data exchanged across this boundary." },
+                  "failure_mode": { "type": "string", "description": "Expected behavior when this boundary fails (e.g., fail-open, fail-closed, degrade)." }
+                },
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": true
+          }
+        },
         "contributing_subsystems": {
           "type": "array",
           "items": { "type": "string" },
@@ -95,20 +213,40 @@
         },
         "_recoverability_note": {
           "type": "string",
-          "description": "Post-hoc annotation classifying the recoverability status of this property (e.g., recoverable, partially recoverable, structurally unfillable, opaque)."
+          "description": "Post-hoc annotation classifying the recoverability status of this property."
         }
       },
       "additionalProperties": true
     },
     "decision_quality_indicators": {
       "type": "object",
-      "description": "Confidence scores, uncertainty flags, and ground truth availability. Resists Metric Erosion degradation.",
+      "description": "Property 4: Evidence of decision quality. Records confidence, uncertainty, and risk assessment. Resists Metric Erosion degradation.",
       "properties": {
         "confidence_score": {
           "type": ["number", "null"],
           "minimum": 0,
           "maximum": 1,
-          "description": "System-reported confidence in the decision (0.0 to 1.0). Null when no score was computed."
+          "description": "Aggregate confidence in the decision (0.0 to 1.0). Null when no score was computed."
+        },
+        "confidence_components": {
+          "type": "array",
+          "description": "Per-component confidence breakdown.",
+          "items": { "type": "object", "additionalProperties": true }
+        },
+        "data_quality": {
+          "type": "object",
+          "description": "Quality of input data: completeness, freshness, known issues.",
+          "additionalProperties": true
+        },
+        "decision_risk_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Risk classification of this decision."
+        },
+        "threshold_alerts": {
+          "type": "array",
+          "description": "Thresholds breached during evaluation.",
+          "items": { "type": "string" }
         },
         "uncertainty_flags": {
           "type": "array",
@@ -121,60 +259,227 @@
         },
         "_recoverability_note": {
           "type": "string",
-          "description": "Post-hoc annotation classifying the recoverability status of this property (e.g., recoverable, partially recoverable, structurally unfillable, opaque)."
+          "description": "Post-hoc annotation classifying the recoverability status of this property."
         }
       },
       "additionalProperties": true
     },
     "human_override_record": {
       "type": "object",
-      "description": "Override decision, independence assessment, and basis for deviation. Resists Override Accumulation degradation.",
+      "description": "Property 5: Independence of human judgment. Records override decisions and rationale. Resists Override Accumulation degradation. override_occurred is mandatory at all evidence tiers for all logic types.",
+      "required": ["override_occurred"],
       "properties": {
+        "override_occurred": {
+          "type": "boolean",
+          "description": "Whether a human override was applied to this decision. Mandatory at all evidence tiers for all logic types to prevent silent falsification of the governance record."
+        },
+        "override_type": {
+          "type": "string",
+          "description": "Type of override: approval, rejection, modification, escalation, deferral."
+        },
+        "override_actor": {
+          "type": "object",
+          "description": "Who performed the override (pseudonymized).",
+          "properties": {
+            "actor_id": { "type": "string" },
+            "actor_role": { "type": "string" },
+            "authorization_level": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "original_output": {
+          "description": "What the system would have decided without override."
+        },
+        "overridden_output": {
+          "description": "What the human decided instead."
+        },
+        "override_rationale": {
+          "type": "string",
+          "description": "Free-text or structured rationale for the override."
+        },
+        "override_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the override was applied."
+        },
+        "time_to_override": {
+          "type": "string",
+          "description": "Duration between system output and human action."
+        },
         "override_decision": {
           "type": ["string", "null"],
           "description": "What the human override changed relative to the automated recommendation. Null when override was structurally impossible or absent by design."
         },
         "independence_assessment": {
           "type": ["string", "null"],
-          "description": "Whether the override was made independently or under organizational pressure. Null when no override occurred."
+          "description": "Whether the override was made independently or under organizational pressure."
         },
         "basis_for_deviation": {
           "type": ["string", "null"],
-          "description": "The stated rationale for deviating from the automated recommendation. Null when no override occurred."
+          "description": "The stated rationale for deviating from the automated recommendation."
         },
         "_recoverability_note": {
           "type": "string",
-          "description": "Post-hoc annotation classifying the recoverability status of this property (e.g., recoverable, partially recoverable, structurally unfillable, opaque)."
+          "description": "Post-hoc annotation classifying the recoverability status of this property."
         }
       },
       "additionalProperties": true
     },
     "temporal_metadata": {
       "type": "object",
-      "description": "Timestamps tracking the gap between decision, evidence availability, and ground truth arrival. Resists Content Staleness degradation (via temporal evidence decay).",
+      "description": "Property 6: Temporal evidence. Records timestamps, cryptographic integrity, and evidence tier. Resists Ground Truth Delay degradation.",
+      "required": ["event_timestamp", "sequence_number", "hash_chain", "evidence_tier"],
       "properties": {
+        "event_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the decision was made (ISO 8601, UTC)."
+        },
+        "processing_duration_ms": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Time taken to reach the decision in milliseconds."
+        },
+        "sequence_number": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Monotonically increasing sequence within the generating system."
+        },
+        "hash_chain": {
+          "type": "object",
+          "description": "Cryptographic integrity chain for tamper evidence (forward integrity).",
+          "required": ["current_hash", "algorithm"],
+          "properties": {
+            "previous_hash": {
+              "type": ["string", "null"],
+              "description": "Hash of the previous DecisionEvent. Null for the first event in a chain."
+            },
+            "current_hash": {
+              "type": "string",
+              "description": "Hash of this DecisionEvent, computed over the canonicalized payload (RFC 8785) with current_hash excluded from input."
+            },
+            "algorithm": {
+              "type": "string",
+              "description": "Hash algorithm (e.g., SHA-256)."
+            }
+          },
+          "additionalProperties": true
+        },
+        "evidence_tier": {
+          "type": "string",
+          "enum": ["lightweight", "sampled", "full"],
+          "description": "Evidence completeness tier. lightweight: required fields only. sampled: context plus abbreviated logic. full: all property groups complete."
+        },
+        "retention_policy": {
+          "type": "object",
+          "description": "Regulatory retention metadata.",
+          "properties": {
+            "minimum_retention": {
+              "type": "string",
+              "description": "ISO 8601 duration for minimum retention period (e.g., P6M for EU AI Act Art. 19)."
+            },
+            "classification": {
+              "type": "string",
+              "description": "Data classification for storage decisions."
+            }
+          },
+          "additionalProperties": true
+        },
+        "digital_signature": {
+          "type": "object",
+          "description": "Cryptographic signature from the generating system for non-repudiation of origin (NIST SP 800-53 AU-10). signature_value is computed over the canonicalized payload (RFC 8785) excluding both signature_value and current_hash; current_hash is then computed over the payload including signature_value. Non-repudiation may alternatively be provided by transport-layer mechanisms such as TEE attestation or mTLS.",
+          "properties": {
+            "signer_id": { "type": "string", "description": "Identity of the signing entity." },
+            "signature_value": { "type": "string", "description": "Digital signature over the canonicalized event (excludes both signature_value and current_hash from input)." },
+            "algorithm": { "type": "string", "description": "Signing algorithm (e.g., ECDSA-P256, Ed25519)." },
+            "certificate_ref": { "type": "string", "description": "Reference to the signing certificate." }
+          },
+          "additionalProperties": true
+        },
         "decision_timestamp": {
           "type": "string",
           "format": "date-time",
-          "description": "When the decision was executed."
+          "description": "Alias for event_timestamp (v0.1.0 backward compatibility)."
         },
         "evidence_availability_timestamp": {
           "type": ["string", "null"],
           "format": "date-time",
-          "description": "When evidence about this decision became available for review. Null when evidence availability cannot be established."
+          "description": "When evidence about this decision became available for review."
         },
         "ground_truth_arrival_timestamp": {
-          "type": "string",
+          "type": ["string", "null"],
           "format": "date-time",
           "description": "When ground truth about the decision outcome became known."
         },
         "_recoverability_note": {
           "type": "string",
-          "description": "Post-hoc annotation classifying the recoverability status of this property (e.g., recoverable, partially recoverable, structurally unfillable, opaque)."
+          "description": "Post-hoc annotation classifying the recoverability status of this property."
         }
       },
       "additionalProperties": true
     }
   },
+  "allOf": [
+    {
+      "title": "Override output fields required when override occurred",
+      "if": {
+        "properties": {
+          "human_override_record": {
+            "properties": {
+              "override_occurred": { "const": true }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "human_override_record": {
+            "required": ["original_output", "overridden_output", "override_timestamp", "override_actor", "override_rationale"]
+          }
+        }
+      }
+    },
+    {
+      "title": "Primary human decisions require attribution regardless of override",
+      "if": {
+        "properties": {
+          "decision_logic": {
+            "properties": {
+              "logic_type": { "const": "human_decision" }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "human_override_record": {
+            "required": ["override_occurred", "override_actor", "override_rationale"]
+          }
+        }
+      }
+    },
+    {
+      "title": "Tier 2+ requires decision_risk_level",
+      "if": {
+        "required": ["temporal_metadata"],
+        "properties": {
+          "temporal_metadata": {
+            "required": ["evidence_tier"],
+            "properties": {
+              "evidence_tier": { "enum": ["sampled", "full"] }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": ["decision_quality_indicators"],
+        "properties": {
+          "decision_quality_indicators": {
+            "required": ["decision_risk_level"]
+          }
+        }
+      }
+    }
+  ],
   "additionalProperties": true
 }

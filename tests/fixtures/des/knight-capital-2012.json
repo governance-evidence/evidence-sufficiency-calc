@@ -1,9 +1,11 @@
 {
-  "schema_version": "0.1.0",
+  "schema_version": "0.3.0",
   "decision_id": "knight-capital-2012-08-01-smars",
   "timestamp": "2012-08-01T13:30:00.000Z",
   "decision_type": "automated",
   "decision_context": {
+    "decision_id": "knight-capital-2012-08-01-smars",
+    "decision_type": "equity_order_execution",
     "available_inputs": [
       "Market data feeds for 154 NYSE-listed stocks",
       "Order routing rules (production + inadvertently reactivated legacy SMARS code)",
@@ -18,6 +20,8 @@
     "_recoverability_note": "Structurally unfillable: system did not log what alternatives the algorithm evaluated or what constraints were operative during legacy code reactivation. alternatives_considered left empty because no mechanism existed to record them."
   },
   "decision_logic": {
+    "logic_type": "rule_based",
+    "output": "submit_market_orders",
     "rule_version": "SMARS v4.0 routing logic inadvertently repurposed as order execution logic on 8 of 8 servers",
     "parameters": {
       "routing_mode": "Legacy Power Peg routing code repurposed as aggressive execution logic",
@@ -52,15 +56,24 @@
     "_recoverability_note": "Structurally unfillable: no anomaly detection, no confidence scoring, no uncertainty flags existed. The system executed 4+ million unintended transactions across 154 stocks without any quality indicator flagging the pattern as aberrant."
   },
   "human_override_record": {
+    "override_occurred": false,
     "override_decision": null,
     "independence_assessment": null,
     "basis_for_deviation": null,
     "_recoverability_note": "Structurally unfillable (architectural): not because operators chose not to intervene, but because no mechanism for human intervention was architecturally available at the velocity at which decisions were executing. Four simultaneous failure dimensions prevented override: speed (millisecond execution), interaction (multiple systems without end-to-end visibility), temporal (legacy code reactivation), and organizational (no single operator could monitor the full decision chain)."
   },
   "temporal_metadata": {
+    "event_timestamp": "2012-08-01T13:30:00.000Z",
     "decision_timestamp": "2012-08-01T13:30:00.000Z",
     "evidence_availability_timestamp": "2012-08-01T15:00:00.000Z",
     "ground_truth_arrival_timestamp": "2012-10-16T00:00:00.000Z",
+    "sequence_number": 1,
+    "hash_chain": {
+      "previous_hash": null,
+      "current_hash": "knight-capital-2012-08-01-smars",
+      "algorithm": "SHA-256"
+    },
+    "evidence_tier": "lightweight",
     "_recoverability_note": "Recoverable: SEC-mandated timestamps accompanied every trade execution. Evidence became assemblable into a reconstructable narrative hours after trading was halted. Formal ground truth (SEC enforcement action and $12M fine) arrived October 16, 2012."
   }
 }

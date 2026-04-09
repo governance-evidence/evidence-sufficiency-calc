@@ -127,12 +127,14 @@ class GovernanceConfig:
 
     def __post_init__(self) -> None:
         weights = dict(self.weights)
+        required_dimensions = set(self._REQUIRED_DIMENSIONS)
 
-        if set(weights.keys()) != self._REQUIRED_DIMENSIONS:
+        if set(weights.keys()) != required_dimensions:
             got = set(weights.keys())
             msg = f"Weights must have keys {self._REQUIRED_DIMENSIONS}, got {got}"
             raise ValueError(msg)
-        for name, weight in weights.items():
+        for name in required_dimensions:
+            weight = weights[name]
             if not math.isfinite(weight) or not 0.0 <= weight <= 1.0:
                 msg = f"Weight {name} must be finite and in [0, 1], got {weight}"
                 raise ValueError(msg)

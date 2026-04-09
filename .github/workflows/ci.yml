@@ -120,9 +120,32 @@ jobs:
           assert schema_resource.is_file()
 
           event = {
+              'schema_version': '0.3.0',
               'decision_id': 'smoke-test-event',
               'timestamp': '2026-01-01T00:00:00Z',
               'decision_type': 'automated',
+              'decision_context': {
+                  'decision_id': 'smoke-test-event',
+                  'decision_type': 'fraud_detection',
+              },
+              'decision_logic': {
+                  'logic_type': 'rule_based',
+                  'output': 'approve',
+              },
+              'human_override_record': {
+                  'override_occurred': False,
+              },
+              'temporal_metadata': {
+                  'event_timestamp': '2026-01-01T00:00:00Z',
+                  'decision_timestamp': '2026-01-01T00:00:00Z',
+                  'sequence_number': 1,
+                  'hash_chain': {
+                      'previous_hash': None,
+                      'current_hash': 'smoke-test-event-hash',
+                      'algorithm': 'SHA-256',
+                  },
+                  'evidence_tier': 'lightweight',
+              },
           }
           assert validate_events([event]) == []
 

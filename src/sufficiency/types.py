@@ -126,15 +126,17 @@ class GovernanceConfig:
     )
 
     def __post_init__(self) -> None:
-        if set(self.weights.keys()) != self._REQUIRED_DIMENSIONS:
-            got = set(self.weights.keys())
+        weights = dict(self.weights)
+
+        if set(weights.keys()) != self._REQUIRED_DIMENSIONS:
+            got = set(weights.keys())
             msg = f"Weights must have keys {self._REQUIRED_DIMENSIONS}, got {got}"
             raise ValueError(msg)
-        for name, weight in self.weights.items():
+        for name, weight in weights.items():
             if not math.isfinite(weight) or not 0.0 <= weight <= 1.0:
                 msg = f"Weight {name} must be finite and in [0, 1], got {weight}"
                 raise ValueError(msg)
-        total = sum(self.weights.values())
+        total = sum(weights.values())
         if not math.isfinite(total) or abs(total - 1.0) > 1e-6:
             msg = f"Weights must sum to 1.0, got {total}"
             raise ValueError(msg)

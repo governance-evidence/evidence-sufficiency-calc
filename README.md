@@ -1,7 +1,8 @@
 # Evidence Sufficiency Calculator
 
 [![CI](https://github.com/governance-evidence/evidence-sufficiency-calc/actions/workflows/ci.yml/badge.svg)](https://github.com/governance-evidence/evidence-sufficiency-calc/actions/workflows/ci.yml)
- [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19233931.svg)](https://doi.org/10.5281/zenodo.19233931)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19233930.svg)](https://doi.org/10.5281/zenodo.19233930)
+[![arXiv](https://img.shields.io/badge/arXiv-2604.15740-b31b1b.svg)](https://arxiv.org/abs/2604.15740)
 ![Status: Alpha](https://img.shields.io/badge/status-alpha-orange)
 ![Python: 3.11-3.14](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
@@ -13,6 +14,22 @@ operational proof to govern this system right now?"*
 The package combines four evidence quality dimensions, a decision-readiness
 gate, blind-period simulation, and an optional adapter for Decision Event
 Schema records.
+
+## Academic Context
+
+This library is the primary artifact of:
+
+> Solozobov, O. (2026). *Evidence Sufficiency Under Delayed Ground Truth: Proxy Monitoring for Risk Decision Systems*.
+> arXiv:2604.15740. <https://arxiv.org/abs/2604.15740>
+
+It implements the sufficiency measurement framework (S(t), A(t)) evaluated against IEEE-CIS fraud data
+and related benchmarks.
+
+Synthesis context — this calculator is one of the artifacts whose transferability across decision system
+architectures is assessed in:
+
+> Solozobov, O. (2026). *Governed Auditable Decisioning Under Uncertainty: Synthesis and Agentic Extension*.
+> arXiv:2604.19112. <https://arxiv.org/abs/2604.19112>
 
 ## For Users
 
@@ -178,26 +195,53 @@ for result in sim.simulate([30, 60, 90, 180]):
 
 ## Citation
 
-Citation metadata for this project is maintained in `CITATION.cff` at the
-repository root.
+If you use this calculator in your research, please cite both the paper and the software artifact.
 
-Current Zenodo release DOI for `v0.1.0`:
+**Paper (primary):**
 
-- `10.5281/zenodo.19233931`
+```bibtex
+@misc{solozobov2026evidencesufficiency,
+  author = {Solozobov, Oleg},
+  title  = {Evidence Sufficiency Under Delayed Ground Truth: Proxy Monitoring for Risk Decision Systems},
+  year   = {2026},
+  eprint = {2604.15740},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CY},
+  doi    = {10.48550/arXiv.2604.15740},
+  url    = {https://arxiv.org/abs/2604.15740}
+}
+```
 
-Recommended software citation:
+**Software (this repository):**
 
-> Solozobov, O. (2026). *Evidence Sufficiency Calculator* (v0.1.0). Zenodo. <https://doi.org/10.5281/zenodo.19233931>
+```bibtex
+@software{solozobov2026evidencesufficiencycalc,
+  author  = {Solozobov, Oleg},
+  title   = {Evidence Sufficiency Calculator},
+  version = {0.2.0},
+  year    = {2026},
+  url     = {https://github.com/governance-evidence/evidence-sufficiency-calc},
+  doi     = {10.5281/zenodo.19233930}
+}
+```
+
+The software `doi` above is the **concept DOI** (always resolves to the latest Zenodo release).
+The current v0.2.0 version DOI is [10.5281/zenodo.19479120](https://doi.org/10.5281/zenodo.19479120).
+
+See [CITATION.cff](CITATION.cff) for machine-readable citation metadata.
 
 ## Related Projects
 
 This calculator is part of the [governance-evidence](https://github.com/governance-evidence) toolkit:
 
-| Repository | Role | DOI |
-| ---------- | ---- | --- |
-| [decision-event-schema](https://github.com/governance-evidence/decision-event-schema) | Schema this calculator validates against (bundled copy included) | [10.5281/zenodo.18923178](https://doi.org/10.5281/zenodo.18923178) |
-| [governance-drift-toolkit](https://github.com/governance-evidence/governance-drift-toolkit) | Drift monitoring — feeds proxy values to this calculator | Pending |
-| [evidence-collector-sdk](https://github.com/governance-evidence/evidence-collector-sdk) | Collects decision events that this calculator scores | Pending |
+| Repository | Role | Concept DOI |
+| ---------- | ---- | ----------- |
+| [decision-event-schema](https://github.com/governance-evidence/decision-event-schema) | Schema this calculator validates against (bundled copy included) | [10.5281/zenodo.18923177](https://doi.org/10.5281/zenodo.18923177) |
+| [governance-drift-toolkit](https://github.com/governance-evidence/governance-drift-toolkit) | Drift monitoring — feeds proxy values to this calculator | [10.5281/zenodo.19236417](https://doi.org/10.5281/zenodo.19236417) |
+| [evidence-collector-sdk](https://github.com/governance-evidence/evidence-collector-sdk) | Collects decision events that this calculator scores | [10.5281/zenodo.19245404](https://doi.org/10.5281/zenodo.19245404) |
+| [governance-benchmark-dataset](https://github.com/governance-evidence/governance-benchmark-dataset) | Cross-architecture benchmark that uses this calculator for sufficiency scoring | [10.5281/zenodo.19248722](https://doi.org/10.5281/zenodo.19248722) |
+
+All DOIs above are **concept DOIs** -- each resolves to the latest Zenodo release of that artifact.
 
 ## License
 

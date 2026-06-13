@@ -10,7 +10,7 @@ version: 0.2.1
 date-released: "2026-06-13"
 repository-code: "https://github.com/governance-evidence/evidence-sufficiency-calc"
 url: "https://github.com/governance-evidence/evidence-sufficiency-calc"
-doi: "10.5281/zenodo.19479120"  # v0.2.0 version DOI
+doi: "10.5281/zenodo.20673686"  # v0.2.1 version DOI
 license: Apache-2.0
 identifiers:
   - type: doi

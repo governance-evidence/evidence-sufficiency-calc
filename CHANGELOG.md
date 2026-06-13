@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.1] - 2026-06-13
 
+Zenodo release: [10.5281/zenodo.20673686](https://doi.org/10.5281/zenodo.20673686).
+
 ### Added
 
 - Dependabot configuration for pip dependencies and GitHub Actions.

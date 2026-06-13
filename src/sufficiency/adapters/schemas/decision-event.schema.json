@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/governance-evidence/decision-event-schema/blob/main/schema/decision-event.schema.json",
+  "$id": "https://governance-evidence.github.io/decision-event-schema/v0.3/decision-event.schema.json",
   "title": "Decision Event",
-  "description": "The minimal unit of governance evidence that enables post-incident reconstruction of automated decisions. Each property group resists a specific governance artifact degradation type. Version 0.3.0 requires explicit schema_version declaration on every event and preserves the v0.2 feature set: two-path human judgment design (primary human decisions vs algorithmic overrides), logic type classification, mandatory override tracking, tiered evidence, cryptographic integrity fields with generation sequence specification, and boundary contract extensions (data_contract, failure_mode).",
+  "description": "The minimal unit of governance evidence that enables post-incident reconstruction of automated decisions. Each property group resists a specific governance artifact degradation type. Version 0.3.1 requires explicit schema_version declaration on every event and preserves the v0.2 feature set: two-path human judgment design (primary human decisions vs algorithmic overrides), logic type classification, mandatory override tracking, tiered evidence, cryptographic integrity fields with generation sequence specification, and boundary contract extensions (data_contract, failure_mode).",
   "type": "object",
   "required": ["schema_version", "decision_context", "decision_logic", "human_override_record", "temporal_metadata"],
   "properties": {
@@ -10,7 +10,7 @@
       "type": "string",
       "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
       "description": "Semantic version of the Decision Event Schema this event conforms to.",
-      "examples": ["0.3.0"]
+      "examples": ["0.3.1"]
     },
     "decision_context": {
       "type": "object",
@@ -161,18 +161,7 @@
               "decision_id": { "type": "string" },
               "system_id": { "type": "string" },
               "coupling_type": { "type": "string" },
-              "boundary_contract": {
-                "type": "object",
-                "description": "Per-interface coupling contract.",
-                "properties": {
-                  "protocol": { "type": "string" },
-                  "schema_version": { "type": "string" },
-                  "sla": { "type": "string" },
-                  "data_contract": { "type": "string", "description": "Schema or format contract for data exchanged across this boundary." },
-                  "failure_mode": { "type": "string", "description": "Expected behavior when this boundary fails (e.g., fail-open, fail-closed, degrade)." }
-                },
-                "additionalProperties": true
-              }
+              "boundary_contract": { "$ref": "#/$defs/boundary_contract" }
             },
             "additionalProperties": true
           }
@@ -185,18 +174,7 @@
             "properties": {
               "system_id": { "type": "string" },
               "contract_version": { "type": "string" },
-              "boundary_contract": {
-                "type": "object",
-                "description": "Per-interface coupling contract.",
-                "properties": {
-                  "protocol": { "type": "string" },
-                  "schema_version": { "type": "string" },
-                  "sla": { "type": "string" },
-                  "data_contract": { "type": "string", "description": "Schema or format contract for data exchanged across this boundary." },
-                  "failure_mode": { "type": "string", "description": "Expected behavior when this boundary fails (e.g., fail-open, fail-closed, degrade)." }
-                },
-                "additionalProperties": true
-              }
+              "boundary_contract": { "$ref": "#/$defs/boundary_contract" }
             },
             "additionalProperties": true
           }
@@ -481,5 +459,19 @@
       }
     }
   ],
-  "additionalProperties": true
+  "additionalProperties": true,
+  "$defs": {
+    "boundary_contract": {
+      "type": "object",
+      "description": "Per-interface coupling contract.",
+      "properties": {
+        "protocol": { "type": "string" },
+        "schema_version": { "type": "string" },
+        "sla": { "type": "string" },
+        "data_contract": { "type": "string", "description": "Schema or format contract for data exchanged across this boundary." },
+        "failure_mode": { "type": "string", "description": "Expected behavior when this boundary fails (e.g., fail-open, fail-closed, degrade)." }
+      },
+      "additionalProperties": true
+    }
+  }
 }

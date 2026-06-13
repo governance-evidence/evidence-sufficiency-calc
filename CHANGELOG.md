@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Re-vendored the bundled decision-event schema at v0.3.1 (dereferenceable
+  GitHub Pages `$id` and a shared `$defs/boundary_contract`); validation
+  semantics and accepted event shapes are unchanged, and the schema
+  hash pin is updated to the new bytes.
+
 ## [0.2.1] - 2026-06-13
 
 ### Added

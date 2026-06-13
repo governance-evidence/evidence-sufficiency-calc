@@ -14,12 +14,12 @@ BUNDLED_SCHEMA = (
     / "decision-event.schema.json"
 )
 PINNED_SHA256 = (
-    "84d665324b4c22286ce6bfeda32e4099579e2dce5b0a744b2b5776dc6b7342d1"  # pragma: allowlist secret
+    "365585a04f3f3913d5fc5bfd7708569054aa56a80388b89152e48cc98d147282"  # pragma: allowlist secret
 )
 
 
 def test_bundled_des_schema_matches_pinned_hash() -> None:
-    """The bundled schema mirrors decision-event-schema v0.3.0.
+    """The bundled schema mirrors decision-event-schema v0.3.1.
 
     If this fails, the bundled copy changed: re-sync it intentionally from
     the decision-event-schema repository, update fixtures and this pin in

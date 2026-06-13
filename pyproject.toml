@@ -40,7 +40,7 @@ des = [
 dev = [
   "jsonschema>=4.20,<5",
   "hypothesis>=6.90,<7",
-  "pytest>=7,<9",
+  "pytest>=7,<10",
   "pytest-cov>=4,<6",
   "ruff>=0.4,<1",
   "mypy==1.20.0",

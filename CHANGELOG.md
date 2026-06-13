@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.2.1] - 2026-06-13
+
+### Added
+
+- Dependabot configuration for pip dependencies and GitHub Actions.
+- Release workflow publishing to PyPI via trusted publishing on tag push.
+- Hash-pin test for the bundled decision-event schema so a re-sync from the
+  decision-event-schema repository is always an intentional, reviewed change.
+
 ## [0.2.0] - 2026-04-09
 
 Zenodo release: [10.5281/zenodo.19479120](https://doi.org/10.5281/zenodo.19479120).
